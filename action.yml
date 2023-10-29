@@ -1,28 +1,20 @@
-name: gmad
-description: Builds and uses `gmad` to compile Garry's Mod addons.
+name: Compile .gma
+description: "Compile a Garry's Mod addon into a .gma file using gmad"
+on: [push]
 
 inputs:
   gma-name:
-    description: The name of the resulting `.gma` file
-    default: ${GITHUB_REPOSITORY#*/}
+    description: 'The name of the resulting .gma file'
+    default: '${{GITHUB_REPOSITORY#*/}}.gma'
 
 runs:
-  using: composite
-  runs-on: ubuntu-latest
+  using: "composite"
+  image: mattjeanes/gmad
   steps:
-    - uses: abel0b/setup-premake@v2.3
-      with:
-        version: "4.3"
-    
     - uses: actions/checkout@v4
+      path: 'repo/'
+    - run: gmad create -folder "${{ GITHUB_WORKSPACE }}/repo/" -out "${{ GITHUB_WORKSPACE }}/${{ inputs.gma-name }}"
+    - uses: actions/upload-artifact@v3
       with:
-        repository: garrynewman/bootil
-        path: libs/bootil
-    
-    - run: premake4 --outdir="bin/" --bootil_lib="libs/bootil/" --bootil_inc="libs/bootil/include/" gmake
-
-    - uses: actions/checkout@v4
-      with:
-        path: self
-
-    - run: ./bin/gmad create -folder ./self/ -out ${{ inputs.gma-name }}.gma
+        name: gma-file
+        path: ${{ GITHUB_WORKSPACE }}/${{ inputs.gma-name }}
